@@ -1,0 +1,326 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Join Us | Developer Community</title>
+<style>
+:root{
+  --bg:#05090b;--card:#0b171b;--green:#39ff88;
+  --text:#f5f7fa;--muted:#a7b4be;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:Arial,sans-serif;line-height:1.6}
+header{display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:15px;padding:18px 6%;
+  border-bottom:1px solid #21423b;background:#071014}
+.logo{font-size:20px;font-weight:bold}
+.logo span,.green{color:var(--green)}
+nav{display:flex;gap:18px;flex-wrap:wrap}
+a{color:var(--text);text-decoration:none}
+a:hover{color:var(--green)}
+.hero{text-align:center;padding:35px 5%;
+  background:radial-gradient(ellipse at center,#06472d,#05090b 72%)}
+h1{font-size:clamp(32px,5vw,46px);margin:5px}
+.muted{color:var(--muted)}
+main{max-width:850px;margin:auto;padding:30px 18px 55px}
+.card{background:linear-gradient(145deg,#0d1c20,#071014);
+  border:1px solid #21423b;border-radius:15px;padding:26px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{margin-bottom:16px}
+.full{grid-column:1/-1}
+label{display:block;font-size:14px;margin-bottom:7px}
+.required{color:var(--green)}
+input,select,textarea{
+  width:100%;padding:12px;border:1px solid #285149;
+  border-radius:8px;background:#050d11;color:white;font:inherit;
+}
+input:focus,select:focus,textarea:focus{
+  outline:1px solid var(--green);border-color:var(--green)}
+textarea{min-height:110px;resize:vertical}
+.consent{display:flex;gap:10px;align-items:flex-start}
+.consent input{width:auto;margin-top:6px}
+button{font:inherit;cursor:pointer}
+.submit{width:100%;padding:14px;background:var(--green);
+  border:0;border-radius:8px;color:#041009;font-weight:bold}
+.submit:disabled{opacity:.65;cursor:wait}
+#message{margin-top:18px;padding:14px;border-radius:8px}
+.success{border:1px solid var(--green);color:var(--green)}
+.error{border:1px solid #ff7777;color:#ffaaaa}
+footer{text-align:center;border-top:1px solid #21423b;
+  padding:25px;color:var(--muted)}
+@media(max-width:600px){
+  header{padding:15px 5%}
+  .grid{grid-template-columns:1fr}
+  .full{grid-column:auto}
+  .card{padding:19px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="index.html"><span>&lt;/&gt;</span> Developer Community</a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="members.html">Members</a>
+    <a href="join.html" class="green">Join Us</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div style="font-size:38px">👨‍💻</div>
+  <h1>Join Our <span class="green">Community</span></h1>
+  <p class="muted">Share your skills, connect with developers, and build together.</p>
+</section>
+
+<main>
+  <div class="card">
+    <h2>Member Registration Form</h2>
+    <p class="muted">Enter your details to become a community member.</p>
+
+    <form id="joinForm">
+      <div class="grid">
+        <div class="field">
+          <label for="name">Full Name <span class="required">*</span></label>
+          <input id="name" name="name" required maxlength="100"
+            autocomplete="name" placeholder="Enter your full name">
+        </div>
+
+        <div class="field">
+          <label for="gender">Gender <span class="required">*</span></label>
+          <select id="gender" name="gender" required>
+            <option value="">Select gender</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+            <option>Prefer not to say</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="email">Email Address <span class="required">*</span></label>
+          <input id="email" name="email" type="email" required maxlength="254"
+            autocomplete="email" placeholder="you@example.com">
+        </div>
+
+        <div class="field">
+          <label for="age">Age <span class="required">*</span></label>
+          <input id="age" name="age" type="number" min="13" max="120"
+            step="1" required placeholder="Enter your age">
+        </div>
+
+        <div class="field full">
+          <label for="mobile">Mobile Number (Optional)</label>
+          <input id="mobile" name="mobile" type="tel" maxlength="20"
+            autocomplete="tel" placeholder="Enter mobile number">
+        </div>
+
+        <div class="field full">
+          <label for="role">Developer Role <span class="required">*</span></label>
+          <select id="role" name="role" required>
+            <option value="">Select your role</option>
+            <option>IT & Technology</option>
+            <option>Web Developer</option>
+            <option>Python Developer</option>
+            <option>Full-Stack Developer</option>
+            <option>Front-End Developer</option>
+            <option>Back-End Developer</option>
+            <option>App Developer</option>
+            <option>Software Developer</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="skill">Skill Level <span class="required">*</span></label>
+          <select id="skill" name="skill" required>
+            <option value="">Select skill level</option>
+            <option>Beginner</option>
+            <option>Intermediate</option>
+            <option>Professional</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="experience">Experience <span class="required">*</span></label>
+          <select id="experience" name="experience" required>
+            <option value="">Select experience</option>
+            <option>Less than 1 year</option>
+            <option>1–5 years</option>
+            <option>6+ years</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="about">About Yourself <span class="required">*</span></label>
+          <textarea id="about" name="about" required maxlength="1000"
+            placeholder="Tell us about your interests and goals"></textarea>
+        </div>
+
+        <div class="field full">
+          <label class="consent">
+            <input id="consent" name="consent" type="checkbox" required>
+            <span>I agree to the use of my information for community registration.</span>
+          </label>
+        </div>
+
+        <div class="field full">
+          <button class="submit" id="submitBtn" type="submit">
+            Submit Registration
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <div id="message" role="status" aria-live="polite" hidden></div>
+    <p class="muted" style="font-size:12px">
+      Demo version: registration details are stored only in this browser.
+    </p>
+  </div>
+</main>
+
+<footer>
+  <strong>Developer Community</strong>
+  <p>Code • Learn • Build • Together</p>
+  <a href="index.html">Home</a> ·
+  <a href="members.html">Members</a> ·
+  <a href="join.html">Join Us</a>
+</footer>
+
+<script>
+const STORAGE_KEY = "developerCommunityMembers";
+const form = document.getElementById("joinForm");
+const message = document.getElementById("message");
+const submitBtn = document.getElementById("submitBtn");
+
+function readMembers(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw === null) return [];
+
+  const data = JSON.parse(raw);
+  if(!Array.isArray(data)) {
+    throw new Error("Stored member data is invalid.");
+  }
+  return data;
+}
+
+function showMessage(text, success){
+  message.textContent = text;
+  message.className = success ? "success" : "error";
+  message.hidden = false;
+}
+
+form.addEventListener("submit", function(event){
+  event.preventDefault();
+  message.hidden = true;
+
+  if(!form.reportValidity()) return;
+
+  const age = Number(form.elements.age.value);
+  if(!Number.isInteger(age) || age < 13 || age > 120){
+    form.elements.age.setCustomValidity("Enter an age from 13 to 120.");
+    form.elements.age.reportValidity();
+    form.elements.age.setCustomValidity("");
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form).entries());
+
+  // Do not store the consent checkbox as a member field.
+  delete data.consent;
+
+  const mobile = data.mobile.trim();
+  if(mobile && !/^[+()\d\s-]{7,20}$/.test(mobile)){
+    showMessage("Please check the mobile number format.", false);
+    return;
+  }
+
+  submitBtn.disabled = true;
+
+  try {
+    const members = readMembers();
+
+    // Prevent a repeated registration using the same email.
+    const email = data.email.trim().toLowerCase();
+    if(members.some(m =>
+      typeof m.email === "string" &&
+      m.email.trim().toLowerCase() === email
+    )){
+      showMessage("This email is already registered.", false);
+      return;
+    }
+
+    const member = {
+      name: data.name.trim(),
+      gender: data.gender,
+      email: email,
+      age: age,
+      mobile: mobile,
+      role: data.role,
+      skill: data.skill,
+      experience: data.experience,
+      about: data.about.trim(),
+      joinDate: new Date().toISOString().slice(0,10),
+      permanent: false
+    };
+
+    // Save first; show success only if storage succeeds.
+    members.push(member);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
+
+    showMessage(
+      "Registration saved in this browser! Total registered members: " +
+      members.length + ". Open Members to view updated statistics.",
+      true
+    );
+
+    form.reset();
+  } catch(error) {
+    showMessage(
+      "Registration could not be saved. Please check browser storage and try again.",
+      false
+    );
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+</script>
+
+<script>
+const API_URL="https://script.google.com/macros/s/AKfycbwGCB8BiQQXENtsXvvrVPiWRSfgMWV7ccWjzGWpApzZRnO-f223U-BIanALwoGDxa2XzA/exec";
+const from=document.getElementById("joinForm");
+const btn=document.getElementById("submitBtn");
+const success=document.getElementById("successBox");
+const errorBox=document.getElementById("errorBox");
+
+from.addEventListener("submit",async e=>{
+ e.preventDefault();
+ success.className="message success";
+ errorBox.className="message error";
+ if(!from.reportValidity())return;
+ btn.disabled=true;btn.textContent="Submitting…";
+
+ const data=new URLSearchParams(new FormData(from));
+ data.set("action","register");
+
+ try{
+  // Apps Script must be deployed to accept public POST requests.
+  // no-cors does not expose the server's success/error response.
+  await fetch(API_URL,{method:"POST",mode:"no-cors",body:data});
+  success.textContent="Request sent. Check Google Sheets to confirm that your registration was saved.";
+  success.classList.add("show");
+  from.reset();
+ }catch(err){
+  errorBox.textContent="Unable to send registration. Check your connection and try again.";
+  errorBox.classList.add("show");
+ }finally{
+  btn.disabled=false;btn.textContent="Submit & Join Community";
+ }
+});
+</script>
+
+</body>
+</html>

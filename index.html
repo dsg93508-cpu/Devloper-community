@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Developer Community | Home</title>
+<style>
+:root {
+  --bg:#05090b; --card:#0b171b; --green:#39ff88;
+  --cyan:#00d9ff; --text:#f5f7fa; --muted:#a7b4be;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:Arial, sans-serif; line-height:1.6;
+}
+header {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:18px 7%; border-bottom:1px solid #18352e;
+  position:sticky; top:0; background:#05090bf2; z-index:10;
+}
+.logo { font-size:21px; font-weight:bold; }
+.logo span { color:var(--green); }
+nav { display:flex; gap:22px; align-items:center; }
+a { color:var(--text); text-decoration:none; }
+nav a:hover, footer a:hover { color:var(--green); }
+.btn {
+  display:inline-block; padding:11px 18px; border-radius:9px;
+  background:var(--green); color:#041009; font-weight:bold;
+  border:1px solid var(--green); transition:.2s;
+}
+.btn:hover { transform:translateY(-2px); box-shadow:0 0 20px #39ff8840; }
+.btn-outline { background:transparent; color:var(--green); }
+section { padding:55px 7%; }
+.hero {
+  min-height:420px; display:flex; align-items:center;
+  background:radial-gradient(ellipse at 80% 40%,#064c32 0%,transparent 48%),
+             linear-gradient(120deg,#071014,#071b18);
+}
+.hero-content { max-width:650px; }
+.eyebrow { color:var(--green); letter-spacing:3px; font-size:12px; }
+h1 { font-size:clamp(38px,6vw,65px); line-height:1.08; margin:15px 0; }
+h1 span, h2 span { color:var(--green); }
+p { color:var(--muted); }
+.actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:25px; }
+.stats, .categories { display:grid; gap:16px; }
+.stats { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.categories { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.card {
+  background:linear-gradient(145deg,#0d1c20,#071014);
+  border:1px solid #21423b; border-radius:14px; padding:22px;
+  transition:.25s;
+}
+.card:hover { border-color:var(--green); transform:translateY(-4px); }
+.stat-number { color:var(--green); font-size:30px; font-weight:bold; }
+.icon { font-size:28px; }
+h2 { font-size:30px; margin:0 0 8px; }
+h3 { margin:8px 0; }
+.category-link { color:var(--green); font-weight:bold; }
+.cta {
+  border:1px solid var(--green); border-radius:18px;
+  background:radial-gradient(ellipse at right,#06472d,#0b171b 65%);
+  padding:32px;
+}
+footer {
+  border-top:1px solid #18352e; padding:25px 7%;
+  display:flex; flex-wrap:wrap; justify-content:space-between; gap:18px;
+}
+footer a { margin-right:15px; }
+@media(max-width:700px) {
+  header { padding:15px 5%; flex-wrap:wrap; gap:12px; }
+  nav { width:100%; gap:16px; flex-wrap:wrap; font-size:14px; }
+  section { padding:38px 5%; }
+  .stats { grid-template-columns:1fr; }
+  .categories { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .card { padding:15px; }
+}
+@media(max-width:430px) {
+  .categories { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="index.html"><span>&lt;/&gt;</span> Developer Community</a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="members.html">Members</a>
+    <a href="join.html">Join Us</a>
+    <a class="btn" href="join.html">Get Started</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="eyebrow">CODE • LEARN • BUILD • TOGETHER</div>
+    <h1>Build Together.<br>Grow <span>Together.</span></h1>
+    <p>A friendly community for developers, programmers, learners,
+       and technology enthusiasts. Share knowledge, collaborate on
+       projects, and grow your skills together.</p>
+    <div class="actions">
+      <a class="btn" href="members.html">Explore Members →</a>
+      <a class="btn btn-outline" href="join.html">＋ Join Our Community</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Our Community</h2>
+  <p>Discover our growing developer community.</p>
+  <div class="stats">
+    <article class="card">
+      <div class="icon">👥</div>
+      <div class="stat-number">Demo</div>
+      <strong>Total Members</strong>
+    </article>
+    <article class="card">
+      <div class="icon">💻</div>
+      <div class="stat-number">Demo</div>
+      <strong>Developers</strong>
+    </article>
+    <article class="card">
+      <div class="icon">🚀</div>
+      <div class="stat-number">Demo</div>
+      <strong>Active Teams</strong>
+    </article>
+  </div>
+  <p><small>Connect a database to display real community statistics.</small></p>
+</section>
+
+<section>
+  <h2>Explore Our <span>Developer Categories</span></h2>
+  <p>Find your interests and connect with like-minded developers.</p>
+  <div class="categories">
+    <article class="card">
+      <div class="icon">🖥️</div><h3>IT & Technology</h3>
+      <p>Explore technology and IT skills.</p>
+      <a class="category-link" href="members.html?role=IT">Explore →</a>
+    </article>
+    <article class="card">
+      <div class="icon">⌨️</div><h3>Web Development</h3>
+      <p>Frontend, backend, and full-stack.</p>
+      <a class="category-link" href="members.html?role=Web%20Developer">Explore →</a>
+    </article>
+    <article class="card">
+      <div class="icon">🐍</div><h3>Python Development</h3>
+      <p>Programming, automation, and data.</p>
+      <a class="category-link" href="members.html?role=Python%20Developer">Explore →</a>
+    </article>
+    <article class="card">
+      <div class="icon">📱</div><h3>App Development</h3>
+      <p>Build applications for mobile devices.</p>
+      <a class="category-link" href="members.html?role=App%20Developer">Explore →</a>
+    </article>
+    <article class="card">
+      <div class="icon">⚙️</div><h3>Software Development</h3>
+      <p>Build useful software and tools.</p>
+      <a class="category-link" href="members.html?role=Software%20Developer">Explore →</a>
+    </article>
+    <article class="card">
+      <div class="icon">🔬</div><h3>Other Technologies</h3>
+      <p>Discover new technologies and ideas.</p>
+      <a class="category-link" href="members.html">Explore →</a>
+    </article>
+  </div>
+</section>
+
+<section>
+  <div class="cta">
+    <h2>Ready to Be Part of Our Community?</h2>
+    <p>Connect, learn, and build with developers.</p>
+    <div class="actions">
+      <a class="btn" href="members.html">Explore Members</a>
+      <a class="btn btn-outline" href="join.html">Join Us</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div><strong><span style="color:#39ff88">&lt;/&gt;</span> Developer Community</strong>
+    <p>Code • Learn • Build • Together</p></div>
+  <div>
+    <a href="index.html">Home</a>
+    <a href="members.html">Members</a>
+    <a href="join.html">Join Us</a>
+  </div>
+</footer>
+
+<script>
+const API_URL="https://script.google.com/macros/s/AKfycbwGCB8BiQQXENtsXvvrVPiWRSfgMWV7ccWjzGWpApzZRnO-f223U-BIanALwoGDxa2XzA/exec";
+function loadCount(){
+ const cb="cb_"+Math.random().toString(36).slice(2),s=document.createElement("script");
+ const el=document.getElementById("totalMembers");
+ const timer=setTimeout(()=>{delete window[cb];s.remove();el.textContent="Unavailable"},12000);
+ window[cb]=d=>{clearTimeout(timer);el.textContent=d.success?Number(d.totalMembers||0).toLocaleString():"Unavailable";delete window[cb];s.remove()};
+ s.onerror=()=>{clearTimeout(timer);el.textContent="Unavailable";delete window[cb];s.remove()};
+ s.src=API_URL+"?action=stats&callback="+cb;document.body.appendChild(s);
+}
+loadCount();
+</script>
+
+</body>
+</html>
