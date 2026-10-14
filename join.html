@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -122,7 +123,7 @@ footer{text-align:center;border-top:1px solid #21423b;
           <label for="role">Developer Role <span class="required">*</span></label>
           <select id="role" name="role" required>
             <option value="">Select your role</option>
-            <option>IT & Technology</option>
+            <option>IT &amp; Technology</option>
             <option>Web Developer</option>
             <option>Python Developer</option>
             <option>Full-Stack Developer</option>
@@ -177,7 +178,7 @@ footer{text-align:center;border-top:1px solid #21423b;
 
     <div id="message" role="status" aria-live="polite" hidden></div>
     <p class="muted" style="font-size:12px">
-      Demo version: registration details are stored only in this browser.
+      Registration is sent to Google Sheets. A local browser backup is also kept.
     </p>
   </div>
 </main>
@@ -191,17 +192,19 @@ footer{text-align:center;border-top:1px solid #21423b;
 </footer>
 
 <script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxBq4-Y7BADzI47HAQq9vx3rm3GoaIYB3Utqk3468Bx5izOMcyrvijmHpHeiQ_GmNqbnw/exec";
 const STORAGE_KEY = "developerCommunityMembers";
+
 const form = document.getElementById("joinForm");
 const message = document.getElementById("message");
 const submitBtn = document.getElementById("submitBtn");
 
-function readMembers(){
+function readLocalMembers(){
   const raw = localStorage.getItem(STORAGE_KEY);
   if(raw === null) return [];
 
   const data = JSON.parse(raw);
-  if(!Array.isArray(data)) {
+  if(!Array.isArray(data)){
     throw new Error("Stored member data is invalid.");
   }
   return data;
@@ -213,7 +216,24 @@ function showMessage(text, success){
   message.hidden = false;
 }
 
-form.addEventListener("submit", function(event){
+function saveLocalBackup(member){
+  const members = readLocalMembers();
+  const email = member.email.trim().toLowerCase();
+  const existingIndex = members.findIndex(m =>
+    typeof m.email === "string" &&
+    m.email.trim().toLowerCase() === email
+  );
+
+  if(existingIndex >= 0){
+    members[existingIndex] = member;
+  } else {
+    members.push(member);
+  }
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
+}
+
+form.addEventListener("submit", async function(event){
   event.preventDefault();
   message.hidden = true;
 
@@ -228,99 +248,90 @@ form.addEventListener("submit", function(event){
   }
 
   const data = Object.fromEntries(new FormData(form).entries());
-
-  // Do not store the consent checkbox as a member field.
   delete data.consent;
 
-  const mobile = data.mobile.trim();
+  const mobile = (data.mobile || "").trim();
   if(mobile && !/^[+()\d\s-]{7,20}$/.test(mobile)){
     showMessage("Please check the mobile number format.", false);
     return;
   }
 
+  const member = {
+    name: data.name.trim(),
+    gender: data.gender,
+    email: data.email.trim().toLowerCase(),
+    age: age,
+    mobile: mobile,
+    role: data.role,
+    skill: data.skill,
+    experience: data.experience,
+    about: data.about.trim(),
+    joinDate: new Date().toISOString().slice(0,10),
+    permanent: false
+  };
+
   submitBtn.disabled = true;
+  submitBtn.textContent = "Submitting...";
 
   try {
-    const members = readMembers();
+    /*
+      Use text/plain so the browser can send a simple cross-origin
+      request without an application/json preflight.
+      Apps Script must be deployed as a Web App with access set to Anyone.
+    */
+    const response = await fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=UTF-8"
+      },
+      body: JSON.stringify(member)
+    });
 
-    // Prevent a repeated registration using the same email.
-    const email = data.email.trim().toLowerCase();
-    if(members.some(m =>
-      typeof m.email === "string" &&
-      m.email.trim().toLowerCase() === email
-    )){
-      showMessage("This email is already registered.", false);
+    if(!response.ok){
+      throw new Error("The server returned an unsuccessful response.");
+    }
+
+    const result = await response.json();
+
+    if(!result.success){
+      showMessage(
+        result.message || "Google Sheets rejected this registration. Please check your details.",
+        false
+      );
       return;
     }
 
-    const member = {
-      name: data.name.trim(),
-      gender: data.gender,
-      email: email,
-      age: age,
-      mobile: mobile,
-      role: data.role,
-      skill: data.skill,
-      experience: data.experience,
-      about: data.about.trim(),
-      joinDate: new Date().toISOString().slice(0,10),
-      permanent: false
-    };
-
-    // Save first; show success only if storage succeeds.
-    members.push(member);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
+    saveLocalBackup(member);
 
     showMessage(
-      "Registration saved in this browser! Total registered members: " +
-      members.length + ". Open Members to view updated statistics.",
+      "Registration saved successfully to Google Sheets. Your browser backup was also updated.",
       true
     );
 
     form.reset();
+
   } catch(error) {
-    showMessage(
-      "Registration could not be saved. Please check browser storage and try again.",
-      false
-    );
+    console.error("Registration submission error:", error);
+
+    try {
+      saveLocalBackup(member);
+
+      showMessage(
+        "We could not confirm the Google Sheets response. A local browser backup was saved, but the Sheet save is unconfirmed. Check your Google Sheet before trying again.",
+        false
+      );
+    } catch(storageError) {
+      console.error("Local backup error:", storageError);
+      showMessage(
+        "The registration could not be confirmed or backed up. Please check your connection and try again.",
+        false
+      );
+    }
   } finally {
     submitBtn.disabled = false;
+    submitBtn.textContent = "Submit Registration";
   }
 });
 </script>
-
-<script>
-const API_URL="https://script.google.com/macros/s/AKfycbwGCB8BiQQXENtsXvvrVPiWRSfgMWV7ccWjzGWpApzZRnO-f223U-BIanALwoGDxa2XzA/exec";
-const from=document.getElementById("joinForm");
-const btn=document.getElementById("submitBtn");
-const success=document.getElementById("successBox");
-const errorBox=document.getElementById("errorBox");
-
-from.addEventListener("submit",async e=>{
- e.preventDefault();
- success.className="message success";
- errorBox.className="message error";
- if(!from.reportValidity())return;
- btn.disabled=true;btn.textContent="Submitting…";
-
- const data=new URLSearchParams(new FormData(from));
- data.set("action","register");
-
- try{
-  // Apps Script must be deployed to accept public POST requests.
-  // no-cors does not expose the server's success/error response.
-  await fetch(API_URL,{method:"POST",mode:"no-cors",body:data});
-  success.textContent="Request sent. Check Google Sheets to confirm that your registration was saved.";
-  success.classList.add("show");
-  from.reset();
- }catch(err){
-  errorBox.textContent="Unable to send registration. Check your connection and try again.";
-  errorBox.classList.add("show");
- }finally{
-  btn.disabled=false;btn.textContent="Submit & Join Community";
- }
-});
-</script>
-
 </body>
 </html>
