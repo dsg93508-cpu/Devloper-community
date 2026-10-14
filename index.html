@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +14,7 @@
 * { box-sizing:border-box; }
 body {
   margin:0; background:var(--bg); color:var(--text);
-  font-family:Arial, sans-serif; line-height:1.6;
+  font-family:Arial,sans-serif; line-height:1.6;
 }
 header {
   display:flex; justify-content:space-between; align-items:center;
@@ -68,6 +69,7 @@ footer {
   display:flex; flex-wrap:wrap; justify-content:space-between; gap:18px;
 }
 footer a { margin-right:15px; }
+.status-note { font-size:12px; }
 @media(max-width:700px) {
   header { padding:15px 5%; flex-wrap:wrap; gap:12px; }
   nav { width:100%; gap:16px; flex-wrap:wrap; font-size:14px; }
@@ -113,21 +115,21 @@ footer a { margin-right:15px; }
   <div class="stats">
     <article class="card">
       <div class="icon">👥</div>
-      <div class="stat-number">Demo</div>
+      <div class="stat-number" id="totalMembers">0</div>
       <strong>Total Members</strong>
     </article>
     <article class="card">
       <div class="icon">💻</div>
-      <div class="stat-number">Demo</div>
+      <div class="stat-number" id="totalDevelopers">0</div>
       <strong>Developers</strong>
     </article>
     <article class="card">
       <div class="icon">🚀</div>
-      <div class="stat-number">Demo</div>
-      <strong>Active Teams</strong>
+      <div class="stat-number" id="activeTeams">0</div>
+      <strong>Permanent Team Members</strong>
     </article>
   </div>
-  <p><small>Connect a database to display real community statistics.</small></p>
+  <p class="status-note" id="statsStatus">Loading community statistics...</p>
 </section>
 
 <section>
@@ -135,9 +137,9 @@ footer a { margin-right:15px; }
   <p>Find your interests and connect with like-minded developers.</p>
   <div class="categories">
     <article class="card">
-      <div class="icon">🖥️</div><h3>IT & Technology</h3>
+      <div class="icon">🖥️</div><h3>IT &amp; Technology</h3>
       <p>Explore technology and IT skills.</p>
-      <a class="category-link" href="members.html?role=IT">Explore →</a>
+      <a class="category-link" href="members.html?role=IT%20%26%20Technology">Explore →</a>
     </article>
     <article class="card">
       <div class="icon">⌨️</div><h3>Web Development</h3>
@@ -179,8 +181,10 @@ footer a { margin-right:15px; }
 </section>
 
 <footer>
-  <div><strong><span style="color:#39ff88">&lt;/&gt;</span> Developer Community</strong>
-    <p>Code • Learn • Build • Together</p></div>
+  <div>
+    <strong><span style="color:#39ff88">&lt;/&gt;</span> Developer Community</strong>
+    <p>Code • Learn • Build • Together</p>
+  </div>
   <div>
     <a href="index.html">Home</a>
     <a href="members.html">Members</a>
@@ -189,17 +193,44 @@ footer a { margin-right:15px; }
 </footer>
 
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbwGCB8BiQQXENtsXvvrVPiWRSfgMWV7ccWjzGWpApzZRnO-f223U-BIanALwoGDxa2XzA/exec";
-function loadCount(){
- const cb="cb_"+Math.random().toString(36).slice(2),s=document.createElement("script");
- const el=document.getElementById("totalMembers");
- const timer=setTimeout(()=>{delete window[cb];s.remove();el.textContent="Unavailable"},12000);
- window[cb]=d=>{clearTimeout(timer);el.textContent=d.success?Number(d.totalMembers||0).toLocaleString():"Unavailable";delete window[cb];s.remove()};
- s.onerror=()=>{clearTimeout(timer);el.textContent="Unavailable";delete window[cb];s.remove()};
- s.src=API_URL+"?action=stats&callback="+cb;document.body.appendChild(s);
-}
-loadCount();
-</script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxBq4-Y7BADzI47HAQq9vx3rm3GoaIYB3Utqk3468Bx5izOMcyrvijmHpHeiQ_GmNqbnw/exec";
 
+async function loadHomeStats() {
+  const status = document.getElementById("statsStatus");
+
+  try {
+    const response = await fetch(SCRIPT_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error("Could not load the server response.");
+
+    const result = await response.json();
+    if (!result.success || !Array.isArray(result.members)) {
+      throw new Error("Unexpected data returned by Apps Script.");
+    }
+
+    const members = result.members;
+    document.getElementById("totalMembers").textContent = members.length;
+
+    const developers = members.filter(member =>
+      member.role &&
+      member.role !== "IT & Technology" &&
+      member.role !== "Other"
+    ).length;
+
+    const permanentMembers = members.filter(member =>
+      member.permanent === true
+    ).length;
+
+    document.getElementById("totalDevelopers").textContent = developers;
+    document.getElementById("activeTeams").textContent = permanentMembers;
+    status.textContent = "Statistics loaded from Google Sheets.";
+  } catch (error) {
+    status.textContent =
+      "Could not load live statistics. Check your Apps Script deployment and connection.";
+    console.error("Home statistics error:", error);
+  }
+}
+
+loadHomeStats();
+</script>
 </body>
 </html>
