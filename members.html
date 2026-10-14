@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,6 +50,7 @@ th,td{text-align:left;padding:12px;border-bottom:1px solid #20352f}
 th{color:var(--green)}
 .empty{text-align:center;padding:28px;color:var(--muted)}
 footer{padding:25px 6%;border-top:1px solid #21423b;color:var(--muted)}
+#loadStatus{margin-top:12px}
 @media(max-width:900px){
  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
  .roles{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -73,8 +75,9 @@ footer{padding:25px 6%;border-top:1px solid #21423b;color:var(--muted)}
 
 <main>
   <a class="btn" href="index.html">← Back to Home</a>
-  <h1>Members & <span class="green">Developer Statistics</span></h1>
-  <p class="muted">Every statistic is calculated from registered community members.</p>
+  <h1>Members &amp; <span class="green">Developer Statistics</span></h1>
+  <p class="muted">Statistics and member information are loaded from Google Sheets.</p>
+  <p id="loadStatus" class="muted" role="status" aria-live="polite">Loading members...</p>
 
   <div class="grid stats">
     <article class="panel">
@@ -100,7 +103,7 @@ footer{padding:25px 6%;border-top:1px solid #21423b;color:var(--muted)}
   </div>
 
   <h2>Developer Categories</h2>
-  <p class="muted">Category counts update when new members register.</p>
+  <p class="muted">Category counts update when registered members are loaded.</p>
   <div class="grid roles" id="roleCards"></div>
 
   <h2>Members by Skill Level</h2>
@@ -128,21 +131,23 @@ footer{padding:25px 6%;border-top:1px solid #21423b;color:var(--muted)}
 
   <h2>Community Members</h2>
   <div class="filters">
-    <input id="search" placeholder="Search by name...">
-    <select id="roleFilter"><option value="">All Roles</option></select>
-    <select id="skillFilter">
+    <input id="search" placeholder="Search by name..." aria-label="Search by name">
+    <select id="roleFilter" aria-label="Filter by role">
+      <option value="">All Roles</option>
+    </select>
+    <select id="skillFilter" aria-label="Filter by skill level">
       <option value="">All Skill Levels</option>
       <option>Beginner</option>
       <option>Intermediate</option>
       <option>Professional</option>
     </select>
-    <select id="expFilter">
+    <select id="expFilter" aria-label="Filter by experience">
       <option value="">All Experience</option>
       <option>Less than 1 year</option>
       <option>1–5 years</option>
       <option>6+ years</option>
     </select>
-    <button class="btn" id="reset">Reset</button>
+    <button class="btn" id="reset" type="button">Reset</button>
   </div>
 
   <p id="resultCount" class="muted">0 members</p>
@@ -163,6 +168,7 @@ footer{padding:25px 6%;border-top:1px solid #21423b;color:var(--muted)}
 <footer>Developer Community · Code • Learn • Build • Together</footer>
 
 <script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxBq4-Y7BADzI47HAQq9vx3rm3GoaIYB3Utqk3468Bx5izOMcyrvijmHpHeiQ_GmNqbnw/exec";
 const STORAGE_KEY = "developerCommunityMembers";
 
 const CATEGORIES = [
@@ -178,8 +184,9 @@ const CATEGORIES = [
 ];
 
 const $ = id => document.getElementById(id);
+let serverMembers = null;
 
-function readMembers(){
+function readLocalMembers(){
   try {
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
     return Array.isArray(data) ? data.filter(m =>
@@ -194,179 +201,185 @@ function readMembers(){
   }
 }
 
+function readMembers(){
+  return Array.isArray(serverMembers) ? serverMembers : readLocalMembers();
+}
+
+async function loadMembersFromGoogleSheets(){
+  const status = $("loadStatus");
+
+  try {
+    const response = await fetch(SCRIPT_URL, {cache:"no-store"});
+    if (!response.ok) throw new Error("Server returned an error.");
+
+    const result = await response.json();
+    if (!result.success || !Array.isArray(result.members)) {
+      throw new Error(result.message || "Invalid data from Apps Script.");
+    }
+
+    serverMembers = result.members.filter(m =>
+      m && typeof m.name === "string" &&
+      typeof m.role === "string" &&
+      typeof m.skill === "string" &&
+      typeof m.experience === "string"
+    );
+
+    status.textContent = "Member data loaded from Google Sheets.";
+    render();
+  } catch (error) {
+    serverMembers = null;
+    status.textContent =
+      "Could not connect to Google Sheets. Showing this browser's local backup, if available.";
+    console.error("Google Sheets member load failed:", error);
+    render();
+  }
+}
+
 function countBy(field,value,members){
   return members.filter(m=>m[field]===value).length;
 }
 
 function makeCategoryCards(members){
-  $("roleCards").innerHTML = CATEGORIES.map(category=>{
+  $("roleCards").replaceChildren();
+
+  CATEGORIES.forEach(category=>{
     const n = countBy("role",category.name,members);
     const pct = members.length ? n/members.length*100 : 0;
-    return `<article class="panel">
-      <div class="icon">${category.icon}</div>
-      <div class="role-name">${category.name}</div>
-      <div class="number">${n}</div>
-      <p class="muted">Registered members</p>
-      <div class="bar"><span style="width:${pct}%"></span></div>
-    </article>`;
-  }).join("");
+
+    const card = document.createElement("article");
+    card.className = "panel";
+
+    const icon = document.createElement("div");
+    icon.className = "icon";
+    icon.textContent = category.icon;
+
+    const name = document.createElement("div");
+    name.className = "role-name";
+    name.textContent = category.name;
+
+    const number = document.createElement("div");
+    number.className = "number";
+    number.textContent = n;
+
+    const description = document.createElement("p");
+    description.className = "muted";
+    description.textContent = "Registered members";
+
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    const fill = document.createElement("span");
+    fill.style.width = pct + "%";
+    bar.appendChild(fill);
+
+    card.append(icon,name,number,description,bar);
+    $("roleCards").appendChild(card);
+  });
 }
 
 function makeRoleOptions(members){
   const selected = $("roleFilter").value;
-  const roles = [...new Set(members.map(m=>m.role))].sort();
-  $("roleFilter").innerHTML =
-    '<option value="">All Roles</option>' +
-    roles.map(r=>`<option value="${r.replace(/&/g,"&amp;").replace(/"/g,"&quot;")}">${r.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</option>`).join("");
-  if(roles.includes(selected)) $("roleFilter").value=selected;
+  const roles = [...new Set(members.map(m=>m.role).filter(Boolean))].sort();
+
+  $("roleFilter").replaceChildren(new Option("All Roles",""));
+  roles.forEach(role=>{
+    $("roleFilter").add(new Option(role,role));
+  });
+
+  if(roles.includes(selected)) $("roleFilter").value = selected;
 }
 
 function render(){
   const members = readMembers();
-  $("total").textContent = members.length;
 
-  // IT Members counts only registrations with this exact role.
+  $("total").textContent = members.length;
   $("it").textContent = countBy("role","IT & Technology",members);
 
-  // Technology Members means members in any listed technology category.
   $("tech").textContent = members.filter(m =>
     CATEGORIES.some(c=>c.name===m.role && c.name!=="Other")
   ).length;
 
-  // Registration form does not assign permanent-team status.
-  // Keep this zero until an authorized admin assigns team membership.
-  $("permanent").textContent = members.filter(m=>m.permanent===true).length;
+  $("permanent").textContent =
+    members.filter(m=>m.permanent===true).length;
 
   makeCategoryCards(members);
   makeRoleOptions(members);
 
   ["Beginner","Intermediate","Professional"].forEach(level=>{
-    const key=level.toLowerCase();
-    const n=countBy("skill",level,members);
-    const pct=members.length ? n/members.length*100 : 0;
-    $(key).textContent=n;
-    $(key+"Bar").style.width=pct+"%";
+    const key = level.toLowerCase();
+    const n = countBy("skill",level,members);
+    const pct = members.length ? n/members.length*100 : 0;
+    $(key).textContent = n;
+    $(key+"Bar").style.width = pct + "%";
   });
 
-  const experiences=["Less than 1 year","1–5 years","6+ years"];
-  $("experienceSummary").innerHTML = experiences.map(e=>
-    `${e}: ${countBy("experience",e,members)}`
-  ).join("<br>");
+  const experiences = ["Less than 1 year","1–5 years","6+ years"];
+  $("experienceSummary").replaceChildren();
+
+  experiences.forEach((experience,index)=>{
+    if(index) $("experienceSummary").appendChild(document.createElement("br"));
+    $("experienceSummary").appendChild(document.createTextNode(
+      experience + ": " + countBy("experience",experience,members)
+    ));
+  });
 
   renderTable(members);
 }
 
 function renderTable(members){
-  const q=$("search").value.trim().toLowerCase();
-  const role=$("roleFilter").value;
-  const skill=$("skillFilter").value;
-  const exp=$("expFilter").value;
+  const q = $("search").value.trim().toLowerCase();
+  const role = $("roleFilter").value;
+  const skill = $("skillFilter").value;
+  const exp = $("expFilter").value;
 
-  const filtered=members.filter(m=>
-    m.name.toLowerCase().includes(q) &&
+  const filtered = members.filter(m =>
+    String(m.name || "").toLowerCase().includes(q) &&
     (!role || m.role===role) &&
     (!skill || m.skill===skill) &&
     (!exp || m.experience===exp)
   );
 
-  // Use textContent rather than inserting user-provided names as HTML.
-  const tbody=$("memberRows");
+  const tbody = $("memberRows");
   tbody.replaceChildren();
 
   filtered.forEach(m=>{
-    const tr=document.createElement("tr");
-    [m.name,m.role,m.skill,m.experience,m.joinDate].forEach(value=>{
-      const td=document.createElement("td");
-      td.textContent=value;
+    const tr = document.createElement("tr");
+
+    [m.name,m.role,m.skill,m.experience,m.joinDate || ""].forEach(value=>{
+      const td = document.createElement("td");
+      td.textContent = value == null ? "" : String(value);
       tr.appendChild(td);
     });
+
     tbody.appendChild(tr);
   });
 
   $("resultCount").textContent =
     `${filtered.length} member(s) shown from ${members.length} registered member(s)`;
-  $("empty").hidden=filtered.length!==0;
+
+  $("empty").hidden = filtered.length !== 0;
 }
 
 ["search","roleFilter","skillFilter","expFilter"].forEach(id=>{
   $(id).addEventListener("input",()=>renderTable(readMembers()));
+  $(id).addEventListener("change",()=>renderTable(readMembers()));
 });
 
 $("reset").addEventListener("click",()=>{
-  $("search").value="";
-  $("roleFilter").value="";
-  $("skillFilter").value="";
-  $("expFilter").value="";
+  $("search").value = "";
+  $("roleFilter").value = "";
+  $("skillFilter").value = "";
+  $("expFilter").value = "";
   renderTable(readMembers());
 });
 
-// Re-read saved registrations whenever the page is opened.
-render();
-
-// Refresh automatically if another tab on the same origin updates storage.
 window.addEventListener("storage",event=>{
-  if(event.key===STORAGE_KEY || event.key===null) render();
+  if(event.key===STORAGE_KEY || event.key===null){
+    if(!Array.isArray(serverMembers)) render();
+  }
 });
-</script>
 
-<script>
-const API_URL="https://script.google.com/macros/s/AKfycbwGCB8BiQQXENtsXvvrVPiWRSfgMWV7ccWjzGWpApzZRnO-f223U-BIanALwoGDxa2XzA/exec";
-function apiGet(action,params={}){
- return new Promise((resolve,reject)=>{
-  const cb="cb_"+Math.random().toString(36).slice(2),s=document.createElement("script");
-  const timer=setTimeout(()=>{delete window[cb];s.remove();reject(Error("Request timed out"))},12000);
-  window[cb]=d=>{clearTimeout(timer);delete window[cb];s.remove();resolve(d)};
-  s.onerror=()=>{clearTimeout(timer);delete window[cb];s.remove();reject(Error("API error"))};
-  s.src=API_URL+"?"+new URLSearchParams({...params,action,callback:cb});
-  document.body.appendChild(s);
- });
-}
-function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-async function loadStats(){
- try{
-  const d=await apiGet("stats");
-  if(!d.success)throw Error();
-  document.getElementById("total").textContent=Number(d.totalMembers||0).toLocaleString();
-  const entries=Object.entries(d.roles||{});
-  document.getElementById("categoryCounts").innerHTML=entries.length?
-   entries.map(([role,count])=>`<div class="card"><h3>${esc(role)}</h3><div class="count">${Number(count)}</div><p class="muted">Approved members</p></div>`).join(""):
-   '<div class="card">No approved members yet.</div>';
- }catch(e){
-  document.getElementById("total").textContent="Unavailable";
-  document.getElementById("categoryCounts").textContent="Could not load data.";
- }
-}
-async function loadMembers(){
- const body=document.getElementById("membersRows");
- document.getElementById("status").textContent="Loading…";
- try{
-  const d=await apiGet("members",{
-   role:document.getElementById("role").value,
-   skill:document.getElementById("skill").value,
-   experience:document.getElementById("experience").value
-  });
-  if(!d.success)throw Error();
-  const members=d.members||[];
-  body.innerHTML=members.length?members.map(m=>{
-   const dt=new Date(m.joinedAt);
-   const date=m.joinedAt&&!isNaN(dt)?dt.toLocaleDateString():"—";
-   return `<tr><td>${esc(m.name)}</td><td>${esc(m.role)}</td><td>${esc(m.skillLevel)}</td><td>${esc(m.experienceLevel)}</td><td>${esc(date)}</td></tr>`;
-  }).join(""):'<tr><td colspan="5">No matching approved members.</td></tr>';
-  document.getElementById("status").textContent=members.length+" member(s) found.";
- }catch(e){
-  body.innerHTML='<tr><td colspan="5">Could not load members. Check Apps Script.</td></tr>';
-  document.getElementById("status").textContent="Connection failed.";
- }
-}
-["role","skill","experience"].forEach(id=>document.getElementById(id).addEventListener("change",loadMembers));
-document.getElementById("reset").addEventListener("click",()=>{
- ["role","skill","experience"].forEach(id=>document.getElementById(id).selectedIndex=0);
- loadMembers();
-});
-const wanted=new URLSearchParams(location.search).get("role");
-if(wanted)document.getElementById("role").value=wanted;
-loadStats();loadMembers();
+render();
+loadMembersFromGoogleSheets();
 </script>
-
 </body>
 </html>
